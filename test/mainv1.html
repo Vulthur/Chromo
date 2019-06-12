@@ -1,0 +1,195 @@
+<!-- 
+	https://pixijs.io/examples/#/demos/graphics-demo.js
+	http://pixijs.download/dev/docs/PIXI.Graphics.html#drawEllipse
+	https://pixijs.io/pixi-particles-editor/
+ -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Peywan Project</title>
+		<style>
+			* { margin:0; padding:0; } 
+			html, body { width:100%; height:100%; }
+			canvas { display:block; }
+		</style>
+	</head>
+	<body>
+		
+		<script src="syncinput.min.js"></script>
+		<script src="pixi.js"></script>
+		<script src="howler.core.js"></script>
+		<script>
+
+			// Variables
+			var durationAnimation = 1000;
+			var durationAnimationEllispe = 300;
+
+			// Manager event on keyboard 
+			var keyboard = new Keyboard();
+
+			// Array of the differents forms to animate them
+			var circles = [];
+			var rectangles = [];
+			var ellipses = [];
+
+			// Loading sound to play on a key
+		    var snare = new Howl({
+		     	src: ['sounds/snare.wav'],
+		     	volume: 0.5
+		    });
+		    var kick = new Howl({
+		     	src: ['sounds/kick.wav']
+		    });
+		    var hihat = new Howl({
+		     	src: ['sounds/hihat.wav']
+		    });
+
+		    // Creation apply containing the canvas
+			var app = new PIXI.Application( 
+				window.innerWidth, // width canvas in pixel 
+				window.innerHeight, // Height canvas in pixel 
+				{ 
+					antialias: true, 
+					autoResize: true, 
+					backgroundColor: 0xFFFFFF // Background color of canvas
+				}
+			);
+			document.body.appendChild( app.view );
+
+			// Listen for animate update
+			app.ticker.add(function(delta) {
+
+				var now = Date.now();
+
+				// Update control
+				keyboard.update();
+
+				// Key A pressed
+    		    if(keyboard.keyJustPressed( Keyboard.A )){
+
+    		    	// Play the snare sound 
+    		    	kick.play();
+
+    		    	// Create a rectangle
+    		    	var rectangle = new PIXI.Graphics();
+
+    		    	// Style of the line to be draw
+					rectangle.lineStyle(0);
+
+					// Color to Fill the drawing 
+					rectangle.beginFill( '0x' + ( Math.random() * 0xFFFFFF<<0 ).toString( 16 ).toUpperCase());
+
+					// Draw the form
+					rectangle.drawRect( 0, 0, 40, 40 );
+
+					// End of filling
+					rectangle.endFill();
+
+					// Moving the position of the drawing
+			    	rectangle.position.set( Math.random() * window.innerWidth, Math.random() * window.innerHeight );
+
+			    	// Add rectangle to our array of rectangles
+			    	rectangles.push( rectangle );
+			    	
+			    	// Keep the timer for animation as a propertie of the rectangle
+			    	rectangle.timer = Date.now();
+
+			    	// Add the rectangle to the stage
+			    	app.stage.addChild( rectangle );
+			    }
+
+			    // Animate every rectangle or remove them a the end of the animation
+			    for(rectangle in rectangles){
+			    	// Comnpare the timer of the rectangle  with the current time
+			   		if(now > rectangles[rectangle].timer + durationAnimation){
+			   			// Time over we remove the shape
+			   			app.stage.removeChild(rectangles[rectangle]);
+			   		} else {
+			   			// We animate the rectangle
+			   			rectangles[rectangle].scale.x += 0.05 * delta;
+            			rectangles[rectangle].scale.y += 0.05 * delta;
+            			rectangles[rectangle].rotation += 0.1 * delta;
+            			rectangles[rectangle].alpha -= 0.02 * delta;
+			   		}
+			   	}
+
+			   	// Key S pressed
+			    if(keyboard.keyJustPressed( Keyboard.S )){
+
+			    	// Play the snare sound 
+    		    	snare.play();
+
+			    	// Create a circle
+    		    	var circle = new PIXI.Graphics();
+
+					circle.lineStyle( 0 );
+					circle.beginFill( '0x' + ( Math.random() * 0xFFFFFF<<0 ).toString( 16 ).toUpperCase());
+					circle.drawCircle( 0, 0, 60 );
+					circle.endFill();
+			    	circle.position.set( Math.random() * window.innerWidth, Math.random() * window.innerHeight );
+
+					// Add circle to our array of circles
+			    	circles.push( circle );
+			    	
+			    	// Keep the timer for animation as a propertie of the circle
+			    	circle.timer = Date.now();
+
+			    	// Add the circle to the stage
+			    	app.stage.addChild( circle );
+			    }
+
+			    // Animate every circle or remove them a the end of the animation
+			   	for(circle in circles){
+			   		if(now > circles[circle].timer + durationAnimation){
+			   			app.stage.removeChild(circles[circle]);
+			   		} else {
+			   			circles[circle].scale.x += 0.05 * delta;
+            			circles[circle].scale.y += 0.05 * delta;
+            			circles[circle].alpha -= 0.02 * delta;
+			   		}
+			   	}
+
+			   	// Key A pressed
+    		    if(keyboard.keyJustPressed( Keyboard.D )){
+    		    	// Play the hihat sound 
+    		    	hihat.play();
+
+    		    	// Create a ellipse
+    		    	var ellipse = new PIXI.Graphics();
+
+					ellipse.lineStyle( 0 );
+					ellipse.beginFill( '0x' + ( Math.random() * 0xFFFFFF<<0 ).toString( 16 ).toUpperCase());
+					ellipse.drawEllipse ( 0, 0, 30, 20 );
+					ellipse.endFill();
+			    	ellipse.position.set( Math.random() * window.innerWidth, Math.random() * window.innerHeight );
+
+					// Add ellipse to our array of ellipses
+			    	ellipses.push( ellipse );
+			    	
+			    	// Keep the timer for animation as a propertie of the ellipse
+			    	ellipse.timer = Date.now();
+
+			    	// Add the ellipse to the stage
+			    	app.stage.addChild( ellipse );
+
+    		    };
+
+    		    // Animate every ellipses or remove them a the end of the animation
+			   	for(ellipse in ellipses){
+			   		if(now > ellipses[ellipse].timer + durationAnimationEllispe){
+			   			app.stage.removeChild(ellipses[ellipse]);
+			   		} else {
+			   			ellipses[ellipse].rotation += 0.5 * delta;
+			   		}
+			   	}
+
+			   	// Resize the renderer every tick
+			   	app.renderer.resize( window.innerWidth, window.innerHeight );
+
+			});
+
+		</script>
+	</body>
+</html>

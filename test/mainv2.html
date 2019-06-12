@@ -1,0 +1,1332 @@
+<!-- 
+	https://pixijs.io/examples/#/demos/graphics-demo.js
+	http://pixijs.download/dev/docs/PIXI.Graphics.html#drawEllipse
+	https://pixijs.io/pixi-particles-editor/
+ -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset=utf-8>
+		<title>Peywan Project</title>
+		<style>
+			* { margin:0; padding:0; } 
+			html, body { width:100%; height:100%; }
+			canvas { display:block; }
+			body {
+				background-color: black;
+			}
+			#falling{
+				position: fixed;
+				right: 50%;
+				margin-right: -337px;
+				top: 50%;
+				margin-top: -393px;
+			}
+			#eye {
+				position: fixed;
+				right: 50%;
+				margin-right: -655px;
+				display: none;
+				margin-top: -16px;
+			}
+		</style>
+	</head>
+	<body>
+		<img id="eye" class="floating" src="img/eye.png"> 
+		<script src="pixi.js"></script>
+		<script src="pixi-particles.js"></script>
+		<script src="pixi-filters.js"></script>
+		<script>
+
+			// VARIABLES
+			var BPM = 110;
+			var quaterNoteTime = 60 / BPM * 1000;
+			var durationAnimationCircle =  Math.floor(quaterNoteTime * 5);
+			var durationAnimationBass = Math.floor(quaterNoteTime /2 );
+			var durationAnimationKick = Math.floor(quaterNoteTime / 3);
+			var durationAnimationSnare = Math.floor(quaterNoteTime / 3) * 2;
+			var durationAnimationEllispe =  Math.floor(quaterNoteTime / 2);
+			var cdLastKey = 118;
+
+			var falling = new PIXI.Sprite.fromImage('img/falling-2.png');
+			falling.anchor.set(0.5);
+			var fallingFront = new PIXI.Sprite.fromImage('img/fallingFront.png');
+			fallingFront.anchor.set(0.5);
+			fallingFront.scale.set(0.4);
+
+			falling.filters = [new PIXI.filters.GlowFilter(10, 2, 1, 0xFFFFFF, 0.5)];
+			fallingFront.filters = [new PIXI.filters.GlowFilter(3, 2, 1, 0xFFFFFF, 0.5)];
+
+
+			var keys = {
+				'24': {
+					note: 'C0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 0 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xfe3143',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)),
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'25': {
+					note: 'C#0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 1 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xf621ea',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'26': {
+					note: 'D0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 2 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x813cff',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'27': {
+					note: 'D#0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 3 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x3f53e9',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'28': {
+					note: 'E0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 4 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x21b5ff',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'29': {
+					note: 'F0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 5 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x13ffdd',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'30': {
+					note: 'F#0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 6 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x3efe89',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'31': {
+					note: 'G0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 7 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x59ff20',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'32': {
+					note: 'G#0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 8 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xfffc15',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'33': {
+					note: 'A0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 9 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xffda48',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'34': {
+					note: 'A#0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 10 + window.innerHeight  / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xffaf00',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'35': {
+					note: 'B0',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 11 + window.innerHeight  / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xff6829',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'36': {
+					note: 'C1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 0 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xfe3143',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)),
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'37': {
+					note: 'C#1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 1 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xf621ea',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'38': {
+					note: 'D1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 2 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x813cff',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'39': {
+					note: 'D#1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 3 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x3f53e9',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'40': {
+					note: 'E1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 4 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x21b5ff',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'41': {
+					note: 'F1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 5 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x13ffdd',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'42': {
+					note: 'F#1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 6 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x3efe89',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'43': {
+					note: 'G1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 7 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0x59ff20',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'44': {
+					note: 'G#1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 8 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xfffc15',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'45': {
+					note: 'A1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 9 + window.innerHeight / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xffda48',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'46': {
+					note: 'A#1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 10 + window.innerHeight  / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xffaf00',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'47': {
+					note: 'B1',
+					isOn: false,
+					x: (window.innerWidth - window.innerHeight) / 2 + window.innerHeight / 12 * 11 + window.innerHeight  / 12 / 2,
+					y: window.innerHeight / 2,
+					color: '0xff6829',
+					sizeX: window.innerWidth / 12,
+					sizeY: Math.sqrt(Math.pow(window.innerHeight, 2) + Math.pow(window.innerWidth, 2)) ,
+					drawing: createRectangle,
+					animate: animateBass,
+					velocity: 0,
+					durationAnimation: durationAnimationBass,
+				},
+				'48': {
+					note: 'C2',
+					isOn: false,
+					x: 0 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0xfe3143', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'49': {
+					note: 'C#2',
+					isOn: false,
+					x: 100 + offset,
+					y: window.innerHeight / 2 - 100,
+					color: '0xf621ea', 
+					size: 30,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'50': {
+					note: 'D2',
+					isOn: false,
+					x: 200 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0x813cff', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'51': {
+					note: 'D#2',
+					isOn: false,
+					x: 300 + offset,
+					y: window.innerHeight / 2 - 100,
+					color: '0x3f53e9', 
+					size: 30,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'52': {
+					note: 'E2',
+					isOn: false,
+					x: 400 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0x21b5ff', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'53': {
+					note: 'F2',
+					isOn: false,
+					x: 500 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0x13ffdd', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'54': {
+					note: 'F#2',
+					isOn: false,
+					x: 600 + offset,
+					y: window.innerHeight / 2 - 100,
+					color: '0x3efe89', 
+					size: 30,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'55': {
+					note: 'G2',
+					isOn: false,
+					x: 700 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0x59ff20', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'56': {
+					note: 'G#2',
+					isOn: false,
+					x: 800 + offset,
+					y: window.innerHeight / 2 - 100,
+					color: '0xfffc15', 
+					size: 30,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'57': {
+					note: 'A2',
+					isOn: false,
+					x: 900 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0xffda48', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'58': {
+					note: 'A#2',
+					isOn: false,
+					x: 1000 + offset,
+					y: window.innerHeight / 2 - 100,
+					color: '0xffaf00', 
+					size: 30,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'59': {
+					note: 'B2',
+					isOn: false,
+					x: 1100 + offset,
+					y: window.innerHeight / 2 + 100,
+					color: '0xff6829', 
+					size: 60,
+					cdLastDraw: 0,
+					slideY: 0,
+					drawing: createCircle
+				},
+				'60': {
+					note: 'C3',
+					isOn: false,
+					isOnce: true,
+					x: window.innerWidth / 2,
+					y: window.innerHeight / 2,
+					color: '0xFFFFFF',
+					sizeX: 600,
+					sizeY: 50,
+					drawing: createRectangle,
+					velocity: 0,
+					durationAnimation: durationAnimationKick,
+					animate: animateKick,
+				},
+				'61': {
+					note: 'C#3',
+					isOn: false,
+					isOnce: true,
+					x: window.innerWidth / 4,
+					y: window.innerHeight / 2,
+					color: '0xFFFFFF',
+					sizeX: 50,
+					sizeY: 400,
+					drawing: createRectangle,
+					velocity: 0,
+					durationAnimation: durationAnimationSnare,
+					animate: animateSnareLeft,
+				},
+				'61B': {
+					note: 'C#3',
+					isOn: false,
+					isOnce: true,
+					x: window.innerWidth / 4 * 3,
+					y: window.innerHeight / 2,
+					color: '0xFFFFFF',
+					sizeX: 50,
+					sizeY: 400,
+					drawing: createRectangle,
+					velocity: 0,
+					durationAnimation: durationAnimationSnare,
+					animate: animateSnareRight,
+				}
+			};
+
+			var possibleColor = [
+				'0X1f0117',
+				'0X1c0115',
+				'0X240116',
+				'0X2c0115',
+				'0X340116',
+				'0X3c0116',
+				'0X440116',
+				'0X4c0217',
+				'0X550418',
+				'0X600619',
+				'0X6b0a1a',
+				'0X76101c',
+				'0X80161e',
+				'0X8a1c1f',
+				'0X932221',
+				'0X9d2623',
+				'0Xa72c23',
+				'0Xae3325',
+				'0Xb95425',
+				'0Xbd6826',
+				'0Xc07d29',
+				'0Xc2973e',
+			];
+			
+			/*var possibleColor = [
+				'0x270111',
+				'0x280110',
+				'0x2A0110',
+				'0x2C0110',
+				'0x2E010F',
+				'0x31010F',
+				'0x35010F',
+				'0x39010F',
+				'0x3D010E',
+				'0x42020E',
+				'0x46020E',
+				'0x49030E',
+				'0x4C030E',
+				'0x4F040E',
+				'0x52040E',
+				'0x56050E',
+				'0x5A060E',
+				'0x5D070E',
+				'0x5F070E',
+				'0x60070F',
+				'0x62080F',
+				'0x650A0F',
+				'0x690B0F',
+				'0x6B0C10',
+				'0x6E0D10',
+				'0x6F0F11',
+				'0x710F10',
+				'0x731011',
+				'0x751211',
+				'0x771412',
+				'0x7A1512',
+				'0x7D1713',
+				'0x7F1813',
+				'0x801913',
+				'0x821B14',
+				'0x831C14',
+				'0x841C14',
+				'0x861D14',
+				'0x872015',
+				'0x8A2115',
+				'0x8C2316',
+				'0x8E2516',
+				'0x902617',
+				'0x912818',
+				'0x922817',
+				'0x942A18',
+				'0x962C18',
+				'0x992E19',
+				'0x9C311A',
+				'0x9F341A',
+				'0xA1361B',
+				'0xA3391B',
+				'0xA63C1C',
+				'0xA93F1C',
+				'0xAC421D',
+				'0xAE451D',
+				'0xB0471E',
+				'0xB2491E',
+				'0xB44B1E',
+				'0xB64D1F',
+				'0xB8501F',
+				'0xBA531F',
+				'0xBE5720',
+				'0xC15B21',
+				'0xC56021',
+				'0xC96522',
+				'0xCD6A22',
+				'0xD06E23',
+				'0xD37223',
+				'0xD57524',
+				'0xD87924',
+				'0xDA7C25',
+				'0xDD8125',
+				'0xE08426',
+				'0xE18727',
+				'0xE28928',
+				'0xE38B29',
+				'0xE48F2C',
+				'0xE5922E',
+				'0xE59532',
+				'0xE59936',
+				'0xE59B3B',
+				'0xE49E3F',
+				'0xE3A043',
+				'0xE2A248',
+			];*/
+
+		
+			var offset = (window.innerWidth - 1200) / 2;
+			var scene = "falling";
+
+			// Array of the differents forms to animate them
+			var circles = [];
+			var rectangles = [];
+			var ellipses = [];
+			var lines = [];
+			var spirals = [];
+
+			// Containers PIXI
+			var containerCharacter = new PIXI.Container();
+			var containerLead = new PIXI.Container();
+			var containerDrum = new PIXI.Container();
+			var containerParticles = new PIXI.Container();
+			var containerBass = new PIXI.Container();
+			var containerCharacter2 = new PIXI.Container();
+
+			var containerSpiral = new PIXI.Container();
+
+			// Random background line
+			var lineNumber = 50;
+			var lineMaxSize = 150;
+			var lineMinSize = 50;
+			var lineMaxWidth = 1;
+			var lineMinWidth = 1;
+			var lineMaxSpeed = 7;
+			var lineMinSpeed = 5;
+
+			// Spiral
+			var nbPolySpiral = 12;
+			var radiusFirstSpiral = 25;
+			var nbDivSpiral = 3;
+
+			// the MIDIAccess object.
+			var midiAccess = null;
+
+		    // Creating app containing the canvas
+			var app = new PIXI.Application( 
+				window.innerWidth, // width canvas in pixel 
+				window.innerHeight, // Height canvas in pixel 
+				{ 
+					antialias: true, 
+					autoResize: true, 
+					backgroundColor: 0x000000 // Background color of canvas
+					//transparent: true
+				}
+			);
+			document.body.appendChild( app.view );
+
+			// Filters
+			var blurFilter1 = new PIXI.filters.BlurFilter();
+			var noiseFilter1 = new PIXI.filters.NoiseFilter(0.7, Math.random());
+			blurFilter1.blur = 1;
+
+			//containerBass.filters = [blurFilter1];
+			containerParticles.filters = [blurFilter1];
+			containerDrum.filters = [noiseFilter1, blurFilter1];
+
+			// Placing container
+			containerCharacter.addChild(falling);
+			containerCharacter2.addChild(fallingFront);
+
+			containerLead.pivot.set(window.innerWidth/2, window.innerHeight/2);
+			containerDrum.pivot.set(window.innerWidth/2, window.innerHeight/2);
+			containerBass.pivot.set(window.innerWidth/2, window.innerHeight/2);
+			containerParticles.pivot.set(window.innerWidth/2, window.innerHeight/2);
+
+			containerDrum.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerLead.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerBass.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerCharacter.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerCharacter2.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerParticles.position.set(window.innerWidth/2, window.innerHeight/2);
+			containerSpiral.position.set(window.innerWidth/2, window.innerHeight/2);
+
+			// Add Container to the scene
+			//app.stage.addChild(containerLead);
+			//app.stage.addChild(containerParticles);
+			//app.stage.addChild(containerDrum);
+			//app.stage.addChild(containerCharacter);
+			app.stage.addChild(containerSpiral);
+			//app.stage.addChild(containerBass);
+			app.stage.addChild(containerCharacter2);
+
+			// Particles
+			var elapsed = Date.now();
+			var particles = new PIXI.particles.Emitter(
+		        containerParticles,
+		  
+		        // The collection of particle images to use
+		        [PIXI.Texture.fromImage('img/Pixel100px.png')],
+		      
+		        // Emitter configuration, edit this to change the look
+		        // of the emitter
+		        {
+					"alpha": {
+						"start": 1,
+						"end": 0
+					},
+					"scale": {
+						"start": 0.1,
+						"end": 0.01,
+						"minimumScaleMultiplier": 1
+					},
+					"color": {
+						"start": "#ffffff",
+						"end": "#ffffff"
+					},
+					"speed": {
+						"start": 300,
+						"end": 100,
+						"minimumSpeedMultiplier": 1
+					},
+					"acceleration": {
+						"x": 0,
+						"y": 0
+					},
+					"maxSpeed": 0,
+					"startRotation": {
+						"min": 260,
+						"max": 280
+					},
+					"noRotation": false,
+					"rotationSpeed": {
+						"min": 0,
+						"max": 0
+					},
+					"lifetime": {
+						"min": 0.2,
+						"max": 0.8
+					},
+					"blendMode": "normal",
+					"frequency": 0.001,
+					"emitterLifetime": -1,
+					"maxParticles": 100,
+					"pos": {
+						"x": 0,
+						"y": 0
+					},
+					"addAtBack": false,
+					"spawnType": "circle",
+					"spawnCircle": {
+						"x": window.innerWidth/2, 
+						"y": window.innerHeight/2,
+						"r": 900
+					}
+				}
+		    );
+    		particles.emit = true;
+
+			// Create the falling line 
+			for (var i = 0; i < lineNumber; i++) {
+				createLine(
+					Math.random() * window.innerWidth / 2,
+					Math.random() * window.innerHeight / 2,
+					Math.floor(Math.random() * lineMaxSize + lineMinSize),
+					Math.floor(Math.random() * lineMaxWidth + lineMinWidth),
+					"0xFFFFFF",
+					Math.floor(Math.random() * lineMaxSpeed + lineMinSpeed)
+				);
+			}
+
+			// Create Spiral
+			for (var i = 0; i < nbPolySpiral; i++) {
+				createSpiral(
+					0,
+					0,
+					0 , //possibleColor[i % possibleColor.length],
+					radiusFirstSpiral * i,
+					i * -3*Math.PI/4,
+					6/*Math.floor(Math.random() * 3 + 3)*/,
+					1 * (0.1 * i),
+					'0xFFFFFF',
+					1,
+					Math.PI/16000 * i,
+				);
+				//radiusFirstSpiral = Math.sqrt(Math.pow(radiusFirstSpiral, 2) + Math.pow(50, 2) - 2*radiusFirstSpiral*50*Math.cos(-3*Math.PI/4));
+			}			
+
+			// Listen for animate update
+			app.ticker.add(function(delta) {
+
+				var now = Date.now();
+				particles.update((now - elapsed) * 0.001);
+				elapsed = now;
+
+				// Create circle on note keyboard
+				for(var noteNumber in keys){
+					if(keys[noteNumber].isOn === true){
+						if(now > keys[noteNumber].cdLastDraw + cdLastKey && keys[noteNumber].drawing == createCircle){
+							keys[noteNumber].drawing(
+								Math.random() * window.innerWidth,//keys[noteNumber].y + keys[noteNumber].slideY,
+								Math.random() * window.innerHeight,//keys[noteNumber].x,
+								keys[noteNumber].color,
+								Math.random() * keys[noteNumber].size + 1,
+								0,
+								0,
+								0
+							);
+							keys[noteNumber].cdLastDraw = now;
+						}
+						if(keys[noteNumber].drawing == createRectangle &&
+								(keys[noteNumber].isOnce === undefined || keys[noteNumber].isOnce === true)){
+							keys[noteNumber].drawing(
+								keys[noteNumber].x,
+								keys[noteNumber].y,
+								keys[noteNumber].color,
+								keys[noteNumber].sizeX,
+								keys[noteNumber].sizeY,
+								0,
+								keys[noteNumber].color,
+								0,
+								keys[noteNumber].animate,
+								keys[noteNumber].velocity,
+								keys[noteNumber].durationAnimation
+							);
+							if(keys[noteNumber].isOnce){
+								keys[noteNumber].isOnce = false;
+							}
+						}
+					}
+				}
+
+			   	// Animate every rectangle or remove them a the end of the animation
+			   	var i = rectangles.length;
+				while (i--) {
+				    if (now > rectangles[i].timer + rectangles[i].durationAnimation) { 
+				    	containerBass.removeChild(rectangles[i]);
+				    	containerDrum.removeChild(rectangles[i]);
+				        rectangles.splice(i, 1);
+				    } else {
+				    	rectangles[i].animate(delta, rectangles[i].velocity);
+				    }
+				}
+
+			    // Animate every circle or remove them a the end of the animation
+			   	i = circles.length;
+				while (i--) {
+				    if (now > circles[i].timer + durationAnimationCircle) { 
+				    	containerLead.removeChild(circles[i]);
+				        circles.splice(i, 1);
+				    } else {
+				    	circles[i].scale.x = circles[i].scale.x + 0.05 * delta;
+            			circles[i].scale.y = circles[i].scale.y + 0.05 * delta;
+            			circles[i].alpha = circles[i].alpha - 0.02 * delta;
+				    }
+				}
+
+    		    // Animate every ellipses or remove them a the end of the animation
+			   	i = ellipses.length;
+				while (i--) {
+				    if (now > ellipses[i].timer + durationAnimationEllispe) { 
+				    	containerDrum.removeChild(ellipses[i]);
+				        ellipses.splice(i, 1);
+				    } else {
+				    	ellipses[i].rotation += 0.5 * delta;
+				    }
+				}
+
+			   	// Animate every line or remove them a the end of the animation
+		   		i = lines.length;
+				while (i--) {
+				    if (lines[i].position.y < -window.innerHeight) { 
+				    	createLine(
+							Math.random() * window.innerWidth / 2,
+							window.innerHeight / 2,
+							Math.floor(Math.random() * lineMaxSize + lineMinSize),
+							Math.floor(Math.random() * lineMaxWidth + lineMinWidth),
+							"0xFFFFFF",
+							Math.floor(Math.random() * lineMaxSpeed + lineMinSpeed)
+						);
+				    	containerParticles.removeChild(lines[i]);
+				        lines.splice(i, 1);
+				    } else {
+				    	lines[i].position.y -= lines[i].speed * delta;
+				    }
+				}
+
+				// Animate every ellipses or remove them a the end of the animation
+				i = spirals.length;
+				while (i--) {
+					spirals[i].rotation += spirals[i].speed * delta;
+					if (spirals[i].scale.y < 3) {
+						spirals[i].scale.x += 0.0015;
+						spirals[i].scale.y += 0.0015;
+					}
+					//console.log(spirals[i].scale.y);
+				}
+
+
+			   	containerBass.rotation += 0.005;
+			   	//containerSpiral.rotation += 0.01;
+
+
+			   	// Resize the renderer every tick
+			   	app.renderer.resize( window.innerWidth, window.innerHeight );
+
+
+			});
+
+
+			// EVENTS
+			window.addEventListener('load', function() {
+
+			  	if (navigator.requestMIDIAccess)
+			    	navigator.requestMIDIAccess().then( onMIDIInit, onMIDIReject );
+			  	/*else
+			    	alert("No MIDI support present in your browser.  You're gonna have a bad time.");*/
+
+			});
+
+			function onMIDIInit(midi) {
+				midiAccess = midi;
+
+				var haveAtLeastOneDevice = false;
+
+				var inputs = midiAccess.inputs.values();
+				for ( var input = inputs.next(); input && !input.done; input = inputs.next()) {
+					//console.log(input);
+			    	input.value.onmidimessage = MIDIMessageEventHandler;
+			    	haveAtLeastOneDevice = true;
+				}
+				/*if (!haveAtLeastOneDevice)
+			    	//alert("No MIDI input devices present.  You're gonna have a bad time.");*/
+			}
+
+			function onMIDIReject(err) {
+				//alert("The MIDI system failed to start.  You're gonna have a bad time.");
+			}
+
+			function MIDIMessageEventHandler(event) {
+
+				//console.log(event.data);
+
+				// Mask off the lower nibble (MIDI channel, which we don't care about)
+				switch (event.data[0] & 0xf0) {
+					case 0x90:
+						if (event.data[2]!=0) {  // if velocity != 0, this is a note-on message
+					    	noteOn(event.data[1], event.data[2]);
+						}
+					    break;
+					// if velocity == 0, fall thru: it's a note-off.  MIDI's weird, y'all.
+					case 0x80:
+						noteOff(event.data[1]);
+						break;
+				}
+
+				if(event.data[0] == 176 && event.data[1] == 5){
+					changeBackground(event.data[2]);
+				}
+
+				if(event.data[0] == 176 && event.data[1] == 7){
+					rotateBackground(event.data[2]);
+				}
+
+				if(event.data[0] == 224) {
+					slideCircle(((event.data[2]) - 64) * -4);
+				}
+
+			}
+
+			window.addEventListener("click", function(){
+				switch(scene){
+					case "falling":
+
+						scene = "eye";
+
+						containerLead.transform.scale.set(0.4, 0.4);
+						containerParticles.transform.scale.set(0.3, 0.3);
+						break;
+					case "eye":
+
+						scene = "falling";
+
+						containerLead.transform.scale.set(1, 1);
+						containerParticles.transform.scale.set(1, 1);
+						break;
+				}
+			});
+
+			// FUNCTIONS
+			function noteOn(noteNumber, velocity) {
+
+				switch(noteNumber){
+					case 24:
+					case 25:
+					case 26:
+					case 27:
+					case 28:
+					case 29:
+					case 30:
+					case 31:
+					case 32:
+					case 33:
+					case 34:
+					case 35:
+					case 36:
+					case 36:
+				    case 37:
+				    case 38:
+				    case 39:
+				    case 40:
+	    		    case 41:
+	    		    case 42:
+	    		    case 43:
+	    		    case 44:
+	    		    case 45:
+	    		    case 46:
+	    		    case 47:
+					case 48:
+				    case 49:
+				    case 50:
+				    case 51:
+				    case 52:
+	    		    case 53:
+	    		    case 54:
+	    		    case 55:
+	    		    case 56:
+	    		    case 57:
+	    		    case 58:
+	    		    case 59:
+	    		    	keys[noteNumber].isOn = true;
+	    		    	break;
+					case 60:
+	    		    	keys[noteNumber].isOn = true;
+	    		    	keys[noteNumber].velocity = velocity;
+						break;
+			    	case 61:
+			    		keys[noteNumber].isOn = true;
+	    		    	keys[noteNumber].velocity = velocity;
+	    		    	keys["61B"].isOn = true;
+	    		    	keys["61B"].velocity = velocity;
+						break;
+
+			    	case 62:
+			    	case 63:
+			    	case 64:
+			    	case 65:
+			    	case 66:
+	    		    case 67:
+	    		    case 68:
+	    		    case 69:
+	    		    case 70:
+	    		    case 71:
+	    		    	createEllipse(
+	    		    		Math.random() * window.innerWidth,
+	    		    		Math.random() * window.innerHeight,
+	    		    		'0xFFFFFF',
+	    		    		60 
+	    		    	);
+				    	break;
+
+				}
+			}
+
+			function noteOff(noteNumber) {
+				switch(noteNumber){
+					case 24:
+					case 25:
+					case 26:
+					case 27:
+					case 28:
+					case 29:
+					case 30:
+					case 31:
+					case 32:
+					case 33:
+					case 34:
+					case 35:
+					case 36:
+					case 37:
+					case 38:
+					case 39:
+					case 40:
+					case 41:
+					case 42:
+					case 43:
+					case 44:
+					case 45:
+					case 46:
+					case 47:
+					case 48:
+				    case 49:
+				    case 50:
+				    case 51:
+				    case 52:
+	    		    case 53:
+	    		    case 54:
+	    		    case 55:
+	    		    case 56:
+	    		    case 57:
+	    		    case 58:
+	    		    case 59:
+	    		    	keys[noteNumber].isOn = false;
+	    		    	break;
+	    		    case 60:
+	    		    	keys[noteNumber].isOn = false;
+	    		    	keys[noteNumber].isOnce = true;
+	    		    	break;
+	    		    case 61:
+	    		    	keys[noteNumber].isOn = false;
+						keys[noteNumber].isOnce = true;
+	    		    	keys["61B"].isOn = false;
+						keys["61B"].isOnce = true;
+	    		    	break;
+				}
+			}
+
+			function createCircle(x, y, color, size, lineWidth, lineColor, lineAlpha){
+				// Create a circle
+		    	var circle = new PIXI.Graphics();
+
+				circle.lineStyle( lineWidth, lineColor, lineAlpha, 0 );
+				circle.beginFill( color );
+				circle.drawCircle( 0, 0, size );
+				circle.endFill();
+		    	circle.position.set(x, y);
+
+				// Add circle to our array of circles
+		    	circles.push( circle );
+		    	
+		    	// Keep the timer for animation as a propertie of the circle
+		    	circle.timer = Date.now();
+
+		    	// Add the circle to the stage
+		    	containerLead.addChild( circle );
+			}
+
+			function createSpiral(x, y, color, radius, rotation, nbDiv, lineWidth, lineColor, lineAlpha, speed){
+				// Create a spiral
+		    	var spiral = new PIXI.Graphics();
+
+				spiral.lineStyle( lineWidth, lineColor, lineAlpha, 0 );
+				spiral.beginFill( color );
+				spiral.drawPolygon(splitCircle(new PIXI.Point (x, y), radius, nbDiv));
+				spiral.endFill();
+
+				spiral.rotation = rotation;
+
+				spiral.speed = speed;
+
+				// Add spiral to our array of spirals
+		    	spirals.push( spiral );
+		    	
+		    	// Keep the timer for animation as a propertie of the spiral
+		    	spiral.timer = Date.now();
+
+		    	containerSpiral.addChildAt( spiral );
+			}
+
+			function createEllipse(x, y, color, size){
+				// Create a ellipse
+		    	var ellipse = new PIXI.Graphics();
+
+				ellipse.lineStyle( 0 );
+				ellipse.beginFill( color );
+				ellipse.drawEllipse ( 0, 0, 30, 20 );
+				ellipse.endFill();
+		    	ellipse.position.set( x, y );
+
+				// Add ellipse to our array of ellipses
+		    	ellipses.push( ellipse );
+		    	
+		    	// Keep the timer for animation as a propertie of the ellipse
+		    	ellipse.timer = Date.now();
+
+		    	// Add the ellipse to the stage
+		    	containerDrum.addChild( ellipse );
+			}
+
+			function createLine(x, y, size, width, color, speed){
+				var line = new PIXI.Graphics();
+
+				line.lineStyle(width, 0xFFFFFF, width);
+				line.moveTo(x, y);
+				line.lineTo(x, y + size);
+				line.position.set( x, y );
+				line.speed = speed;
+
+				lines.push(line);
+
+				containerParticles.addChild(line);
+
+			}
+
+			function createRectangle(x, y, color, sizeX, sizeY, lineWidth, lineColor, lineAlpha, animation, velocity, durationAnimation){
+
+		    	var rectangle = new PIXI.Graphics();
+
+				rectangle.lineStyle(lineWidth, lineColor, lineAlpha, 0);
+				rectangle.beginFill(color);
+				rectangle.drawRect(0, 0, sizeX + velocity / 2, sizeY + velocity / 2);
+				rectangle.endFill();
+
+		    	rectangle.position.set(x, y);
+		    	rectangle.pivot.set((sizeX + velocity / 2) / 2, (sizeY + velocity / 2) / 2);
+
+		    	rectangle.timer = Date.now();
+		    	rectangle.animate = animation;
+		    	rectangle.velocity = velocity;
+		    	rectangle.durationAnimation = durationAnimation;
+
+		    	rectangles.push(rectangle);
+		    	
+		    	if(velocity !== 0){
+		    		containerBass.addChildAt(rectangle, containerBass.children.length);
+		    	} else {
+		    		containerBass.addChild(rectangle);
+		    	}
+			}
+
+			function changeBackground(value){
+				app.renderer.backgroundColor = '0x' + value.toString(16) + value.toString(16) + value.toString(16) + value.toString(16) + value.toString(16) + value.toString(16);
+			}
+
+			function rotateBackground(value){
+				containerLead.rotation = value * ( 2 * Math.PI / 127 );
+			}
+
+			function slideCircle(value){
+				for(var noteNumber in keys){			
+					keys[noteNumber].slideY = value;
+				}
+			}
+
+			function animateBass(delta){
+			   	this.scale.x = this.scale.x - 0.05 * delta;
+            	//this.alpha -= 0.01 * delta;
+            }
+
+            function animateKick(delta){
+            	this.scale.x = this.scale.x + 0.01 * delta;
+            	this.scale.y = this.scale.y + 0.01 * delta;
+            }
+
+            function animateSnareLeft(delta){
+            	this.position.set(this.position.x - 10, this.position.y);	
+            	this.scale.x = this.scale.x - 0.03 * delta;
+            	this.scale.y = this.scale.y - 0.03 * delta;
+            }
+
+            function animateSnareRight(delta){
+            	this.position.set(this.position.x + 10, this.position.y);	
+            	this.scale.x = this.scale.x - 0.03 * delta;
+            	this.scale.y = this.scale.y - 0.03 * delta;
+            }
+
+            function splitCircle(orign, radius, nbDiv){
+            	var arrPoint = [];
+            	var angle = 2*Math.PI / nbDiv;
+
+				// Where r is the radius, cx,cy the origin, and a the angle. 
+				for (var i = 0; i < nbDiv; i++) {
+	            	
+	            	x = orign.x + radius * Math.cos(angle * i)
+					y = orign.y + radius * Math.sin(angle * i)
+					
+					arrPoint.push(new PIXI.Point (x, y));
+				}
+				//debugger
+				arrPoint.push(arrPoint[0]);
+            	return arrPoint;
+            }
+
+		</script>
+	</body>
+</html>
