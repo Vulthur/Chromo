@@ -229,10 +229,13 @@ function onkey(event){
     }
 
     // keyup/keydown
+    let velocity;
     if(event.type === 'keydown') {
         typeNote = Config.midiType.noteOn;
+        velocity = Config.defaultVelocity;
     } else {
         typeNote = Config.midiType.noteOff;
+        velocity = 0;
     }
 
     // TODO Create a proper MIDIMessageEvent if needed
@@ -240,7 +243,7 @@ function onkey(event){
         data: [
             (channel | 0xF0) & (typeNote | 0x0F),
             keyNumber,
-            Config.defaultVelocity
+            velocity
         ],
         timestamp: 0
     };
