@@ -6,6 +6,9 @@ The project is in the demo folder.
 My midi controller send midi to the app which send midi to Ableton.
 The app is also recveiving midi (drum) from ableton.
 
+I'm using this software a windows https://www.tobias-erichsen.de/software/loopmidi.html to simulate a midi connection
+beetween ableton and my app.
+
 Midi API is only implemented in Chrome.
 This project is for desktop use, actually neither optimisation for the web have been made.
 Just deploy on a local server an browse to : http://localhost/demo/Chromesthesia/.
