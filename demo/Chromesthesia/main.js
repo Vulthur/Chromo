@@ -208,6 +208,12 @@ function mainLoop(){
 
 // Handle event from the keyboard
 function onkey(event){ 
+    
+    // Repeat on keydown
+    if(event.repeat){
+        return;
+    }
+
     // Define channel, key number and type;
     let channel;
     let keyNumber;
@@ -230,7 +236,7 @@ function onkey(event){
 
     // keyup/keydown
     let velocity;
-    if(event.type === 'keydown') {
+    if (event.type === 'keydown') {
         typeNote = Config.midiType.noteOn;
         velocity = Config.defaultVelocity;
     } else {
